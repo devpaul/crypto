@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import Promise from 'dojo-core/Promise';
 import { ByteBuffer, Codec, utf8 } from 'dojo-core/encoding';
-import { Data, Key, Signer, SignFunction } from '../../crypto';
+import { Data, SimpleKey, Signer, SignFunction } from '../../crypto';
 import { getEncodingName } from './util';
 
 /**
@@ -16,7 +16,7 @@ const resolvedPromise = Promise.resolve();
 /**
  * Generates a signature for a chunk of data.
  */
-function sign(algorithm: string, key: Key, data: Data, codec: Codec): Promise<ByteBuffer> {
+function sign(algorithm: string, key: SimpleKey, data: Data, codec: Codec): Promise<ByteBuffer> {
 	const hashAlgorithm = key.algorithm;
 	const hmac = crypto.createHmac(hashAlgorithm, <Buffer> key.data);
 	const encoding = getEncodingName(codec);
@@ -28,7 +28,7 @@ function sign(algorithm: string, key: Key, data: Data, codec: Codec): Promise<By
  * An object that can be used to generate a signature for a stream of data.
  */
 class NodeSigner<T extends Data> implements Signer<T> {
-	constructor(algorithm: string, key: Key, encoding: string) {
+	constructor(algorithm: string, key: SimpleKey, encoding: string) {
 		Object.defineProperty(this, '_sign', {
 			configurable: true,
 			value: crypto.createHmac(key.algorithm, <Buffer> key.data)
@@ -87,10 +87,10 @@ export default function getSign(algorithm: string): SignFunction {
 		throw new Error('invalid algorithm; available algorithms are [ \'' + Object.keys(ALGORITHMS).join('\', \'') + '\' ]');
 	}
 
-	const signFunction = <SignFunction> function (key: Key, data: Data, codec: Codec = utf8): Promise<ByteBuffer> {
+	const signFunction = <SignFunction> function (key: SimpleKey, data: Data, codec: Codec = utf8): Promise<ByteBuffer> {
 		return sign(algorithm, key, data, codec);
 	};
-	signFunction.create = function<T extends Data> (key: Key, codec: Codec = utf8): Signer<T> {
+	signFunction.create = function<T extends Data> (key: SimpleKey, codec: Codec = utf8): Signer<T> {
 		return new NodeSigner<T>(algorithm, key, getEncodingName(codec));
 	};
 

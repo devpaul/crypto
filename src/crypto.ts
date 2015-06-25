@@ -37,20 +37,30 @@ declare var require: Function;
 export type Data = string | ByteBuffer;
 
 /**
- * Supported hash algorithms 
+ * A cryptographic key.
+ */
+export interface SimpleKey {
+	algorithm: string,
+	data: Data
+}
+
+export type Key = SimpleKey | CryptoKey;
+
+/**
+ * Supported hash algorithms
  */
 const HASH_ALGORITHMS = {
 	md5: true,
 	sha1: true,
 	sha256: true
-}
+};
 
 /**
- * Supported signing algorithms 
+ * Supported signing algorithms
  */
 const SIGN_ALGORITHMS = {
 	hmac: true
-}
+};
 
 /**
  * An interface describing a cryptographic provider.
@@ -74,9 +84,9 @@ export interface HashFunction {
  * A signing function.
  */
 export interface SignFunction {
-	(key: Key, data: ByteBuffer): Promise<ByteBuffer>;
-	(key: Key, data: string, codec?: Codec): Promise<ByteBuffer>;
-	create<T extends Data>(key: Key, codec?: Codec): Signer<T>;
+	(key: Key | Promise<Key>, data: ByteBuffer): Promise<ByteBuffer>;
+	(key: Key | Promise<Key>, data: string, codec?: Codec): Promise<ByteBuffer>;
+	create<T extends Data>(key: Key | Promise<Key>, codec?: Codec): Signer<T>;
 	algorithm: string;
 }
 
@@ -297,14 +307,6 @@ class HasherWrapper<T extends Data> implements Hasher<T> {
 			return hasher.write(chunk);
 		});
 	}
-}
-
-/**
- * A cryptographic key.
- */
-export interface Key {
-	algorithm: string,
-	data: Data
 }
 
 /**

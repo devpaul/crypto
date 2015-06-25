@@ -2,6 +2,7 @@ import registerSuite = require('intern!object');
 import assert = require('intern/chai!assert');
 import * as crypto from 'src/crypto';
 import { ascii, base64, hex, utf8 } from 'dojo-core/encoding';
+import has from 'src/has';
 
 type Suite = { [ key: string ]: any };
 
@@ -157,11 +158,13 @@ addTests(suite, 'hmac', key, data, [
 	0x25, 0x9A, 0x7C, 0x79
 ]);
 
-key = { algorithm: 'md5', data: 'Jefe' };
-addTests(suite, 'hmac', key, data, [
-	0x75, 0x0C, 0x78, 0x3E, 0x6A, 0xB0, 0xB5, 0x03,
-	0xEA, 0xA8, 0x6E, 0x31, 0x0A, 0x5D, 0xB7, 0x38
-]);
+if (!has('webcrypto')) { // webcrypto does not support md5 hashes
+	key = { algorithm: 'md5', data: 'Jefe' };
+	addTests(suite, 'hmac', key, data, [
+		0x75, 0x0C, 0x78, 0x3E, 0x6A, 0xB0, 0xB5, 0x03,
+		0xEA, 0xA8, 0x6E, 0x31, 0x0A, 0x5D, 0xB7, 0x38
+	]);
+}
 
 suite['invalid algorithm after load'] = function () {
 	assert.throws(function () {
